@@ -5,7 +5,7 @@
 ``` 1000
 import java.util.*;
 
-public class Practice1 {
+public class Main {
 
 	public static void main(String[] args) {
 		
@@ -15,6 +15,28 @@ public class Practice1 {
 		int B = scan.nextInt();
 		
 		System.out.println(A+B);
+	}
+
+}
+```
+
+<br>
+
+#### A - B
+
+``` 1001
+import java.util.*;
+
+public class Main {
+
+	public static void main(String[] args) {
+		
+		Scanner scan = new Scanner(System.in);
+		
+		int A = scan.nextInt();
+		int B = scan.nextInt();
+		
+		System.out.println(A-B);
 	}
 
 }
