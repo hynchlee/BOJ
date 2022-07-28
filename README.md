@@ -1,6 +1,8 @@
 # BOJ
 
-package Tutorial;
+#### A + B
+
+``` 1000
 import java.util.*;
 
 public class Practice1 {
@@ -16,3 +18,4 @@ public class Practice1 {
 	}
 
 }
+```
