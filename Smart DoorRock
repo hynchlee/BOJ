@@ -1,0 +1,228 @@
+# 졸프
+
+#### Socket Client(Android Studio)
+
+``` 
+
+package com.example.smartdoorock;
+
+import androidx.appcompat.app.AppCompatActivity;
+import android.os.Bundle;
+import android.os.Handler;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+
+public class MainActivity extends AppCompatActivity {
+
+    EditText addressInput; 
+    EditText dataInput; 
+
+    String str;
+    String addr;
+
+    String response; 
+
+    Handler handler = new Handler(); 
+    
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        addressInput = findViewById(R.id.addressInput);
+        dataInput = findViewById(R.id.dataInput);
+        Button socketConnectBtn = findViewById(R.id.socketConnectBtn);
+        
+        socketConnectBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                addr = addressInput.getText().toString().trim();
+                str = dataInput.getText().toString();
+                SocketThread thread = new SocketThread(addr, str);
+                thread.start();
+            }
+        });
+    }
+
+    class SocketThread extends Thread{
+
+        String host; 
+        String data; 
+
+        public SocketThread(String host, String data){
+            this.host = host;
+            this.data = data;
+        }
+
+        @Override
+        public void run() {
+
+            try{
+                int port = 5555; 
+                Socket socket = new Socket(host, port); 
+                ObjectOutputStream outstream = new ObjectOutputStream(socket.getOutputStream()); 
+                outstream.writeObject(data); 
+                outstream.flush(); 
+
+                ObjectInputStream instream = new ObjectInputStream(socket.getInputStream()); 
+                response = (String) instream.readObject(); 
+
+              
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(MainActivity.this, "서버 응답 : " + response, Toast.LENGTH_LONG).show();
+                    }
+                });
+
+                socket.close(); 
+
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+        }
+    }
+}
+
+```
+
+<br>
+
+# 졸프
+
+#### Socket Server(Eclipse)
+
+``` 
+
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+public class SocketServer {
+
+    public static void main(String[] args) {
+        int portNumber = 5555;
+
+        try {
+            System.out.println("서버를 시작합니다...");
+            ServerSocket serverSocket = new ServerSocket(portNumber);
+            System.out.println("포트 " + portNumber + "에서 요청 대기중...");
+
+            while(true) {
+                Socket socket = serverSocket.accept(); 
+                InetAddress clientHost = socket.getLocalAddress();
+                int clientPort = socket.getPort();
+                System.out.println("클라이언트 연결됨. 호스트 : " + clientHost + ", 포트 : " + clientPort);
+
+                ObjectInputStream instream = new ObjectInputStream(socket.getInputStream()); 
+                Object obj = instream.readObject(); 
+                System.out.println("클라이언트로부터 받은 데이터 : " + obj); 
+
+                ObjectOutputStream outstream = new ObjectOutputStream(socket.getOutputStream()); 
+                outstream.writeObject(obj + " from server"); 
+                outstream.flush(); 
+                socket.close(); 
+            }
+        }catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+<br>
+
+# 졸프
+
+#### Pingerprint(오류)
+
+``` 
+
+package com.example.pingerprint;
+
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.biometric.BiometricPrompt;
+import androidx.core.content.ContextCompat;
+
+import java.util.concurrent.Executor;
+
+class AuthFingerprintActivity extends AppCompatActivity {
+
+    private Executor executor;
+    private BiometricPrompt biometricPrompt;
+    private BiometricPrompt.PromptInfo promptInfo;
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_auth_fingerprint );
+
+
+        executor = ContextCompat.getMainExecutor(this);
+        biometricPrompt = new BiometricPrompt(this,
+                executor, new BiometricPrompt.AuthenticationCallback() {
+            @Override
+            public void onAuthenticationError(int errorCode,
+                                              @NonNull CharSequence errString) {
+                super.onAuthenticationError(errorCode, errString);
+                Toast.makeText(getApplicationContext(),
+                        R.string.auth_error_message,
+                        Toast.LENGTH_SHORT)
+                        .show();
+            }
+
+            @Override
+            public void onAuthenticationSucceeded(
+                    @NonNull BiometricPrompt.AuthenticationResult result) {
+                super.onAuthenticationSucceeded(result);
+                Toast.makeText(getApplicationContext(),
+                        R.string.auth_success_message, Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onAuthenticationFailed() {
+                super.onAuthenticationFailed();
+                Toast.makeText(getApplicationContext(), R.string.auth_fail_message,
+                        Toast.LENGTH_SHORT)
+                        .show();
+            }
+        });
+
+        promptInfo = new BiometricPrompt.PromptInfo.Builder()
+                .setTitle("지문 인증")
+                .setSubtitle("기기에 등록된 지문을 이용하여 지문을 인증해주세요.")
+                .setNegativeButtonText("취소")
+                .setDeviceCredentialAllowed(false)
+                .build();
+
+        //  사용자가 다른 인증을 이용하길 원할 때 추가하기
+
+        Button biometricLoginButton = findViewById(R.id.buttonAuthWithFingerprint);
+        biometricLoginButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                biometricPrompt.authenticate(promptInfo);
+            }
+        });
+
+    }
+}
+
+```
+
+<br>
